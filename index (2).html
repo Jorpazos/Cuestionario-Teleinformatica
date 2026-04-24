@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Final Teleinformática · 100 preguntas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg-elev: #141a2a;
+    --bg-soft: #1c2438;
+    --ink: #e8ecf4;
+    --muted: #8b95ad;
+    --accent: #00e5a8;
+    --accent-dim: #00b889;
+    --danger: #ff4d6d;
+    --warn: #ffb84d;
+    --info: #4da6ff;
+    --border: #2a3350;
+    --gold: #f2d98d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--ink); font-family: 'JetBrains Mono', monospace; min-height: 100vh; }
+  body {
+    background-image:
+      radial-gradient(circle at 10% 10%, rgba(0,229,168,0.08) 0, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(77,166,255,0.06) 0, transparent 45%);
+    padding: 24px 16px 80px;
+  }
+
+  .container { max-width: 880px; margin: 0 auto; }
+
+  /* HEADER */
+  .header {
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding: 24px;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--info), var(--gold));
+  }
+  .eyebrow {
+    font-size: 11px; color: var(--accent); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif; font-weight: 900;
+    font-size: clamp(28px, 5vw, 44px); line-height: 1; margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  h1 em { font-style: italic; color: var(--gold); font-weight: 700; }
+  .subtitle { color: var(--muted); font-size: 13px; }
+
+  /* HUD fijo con timer + puntaje */
+  .hud {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(20, 26, 42, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 20px 0;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .hud-item { text-align: center; }
+  .hud-label { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .hud-value { font-family: 'Fraunces', serif; font-weight: 900; font-size: 22px; line-height: 1; }
+  .hud-value.green { color: var(--accent); }
+  .hud-value.blue { color: var(--info); }
+  .hud-value.gold { color: var(--gold); }
+  .hud-value.red { color: var(--danger); }
+
+  @media (max-width: 600px) {
+    .hud { grid-template-columns: repeat(2, 1fr); }
+    .hud-value { font-size: 18px; }
+  }
+
+  /* Progress bar */
+  .progress-shell {
+    height: 6px; background: var(--bg-soft); border-radius: 3px; overflow: hidden;
+    margin: 18px 0;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--accent), var(--info));
+    transition: width 0.4s ease; width: 0%;
+  }
+
+  /* START SCREEN */
+  .start-panel {
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding: 32px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .start-panel h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 26px; margin-bottom: 14px;
+    font-weight: 700;
+  }
+  .info-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px; margin: 24px 0;
+  }
+  .info-box {
+    border: 1px solid var(--border); padding: 16px; border-radius: 4px;
+    background: var(--bg-soft);
+  }
+  .info-box-num { font-family: 'Fraunces', serif; font-weight: 900; font-size: 32px; color: var(--accent); }
+  .info-box-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 14px;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--bg);
+    padding: 16px 40px;
+    border-radius: 4px;
+    box-shadow: 0 0 0 rgba(0,229,168,0);
+  }
+  .btn-primary:hover {
+    background: var(--accent-dim);
+    box-shadow: 0 0 24px rgba(0,229,168,0.4);
+    transform: translateY(-2px);
+  }
+  .btn-secondary {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--border); padding: 12px 24px;
+    border-radius: 4px;
+  }
+  .btn-secondary:hover { background: var(--bg-soft); border-color: var(--accent); }
+
+  /* QUESTION CARD */
+  .question-card {
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding: 28px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    animation: slideIn 0.35s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .q-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .q-tag {
+    background: var(--bg-soft); padding: 4px 10px; border-radius: 3px;
+    color: var(--info); border: 1px solid var(--border);
+  }
+  .q-number { color: var(--gold); font-weight: 800; }
+  .q-text {
+    font-family: 'Fraunces', serif; font-size: 19px; line-height: 1.4;
+    font-weight: 400; margin-bottom: 22px; color: var(--ink);
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    background: var(--bg-soft); border: 1px solid var(--border);
+    padding: 14px 16px; border-radius: 4px;
+    cursor: pointer; transition: all 0.18s ease;
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 14px; line-height: 1.5;
+    text-align: left; width: 100%;
+    color: var(--ink); font-family: inherit;
+  }
+  .option:hover:not(:disabled) {
+    border-color: var(--accent); background: rgba(0,229,168,0.05);
+    transform: translateX(2px);
+  }
+  .option:disabled { cursor: default; }
+  .option-letter {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800;
+    color: var(--muted);
+    background: var(--bg);
+  }
+  .option.correct {
+    border-color: var(--accent); background: rgba(0,229,168,0.12);
+  }
+  .option.correct .option-letter { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .option.wrong {
+    border-color: var(--danger); background: rgba(255,77,109,0.12);
+  }
+  .option.wrong .option-letter { background: var(--danger); color: white; border-color: var(--danger); }
+
+  .explanation {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--bg-soft);
+    border-left: 3px solid var(--gold);
+    border-radius: 3px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--ink);
+    animation: slideIn 0.3s ease;
+  }
+  .explanation strong { color: var(--gold); }
+
+  .nav {
+    display: flex; justify-content: space-between; gap: 12px; margin-top: 20px;
+  }
+  .nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* END SCREEN */
+  .final-panel {
+    border: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding: 32px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .score-big {
+    font-family: 'Fraunces', serif; font-weight: 900;
+    font-size: clamp(60px, 12vw, 96px); line-height: 1;
+    margin: 12px 0;
+  }
+  .score-big.good { color: var(--accent); }
+  .score-big.mid { color: var(--gold); }
+  .score-big.bad { color: var(--danger); }
+  .verdict {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 20px; color: var(--muted); margin-bottom: 24px;
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px; margin: 24px 0;
+  }
+  .stat-box {
+    padding: 14px; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg-soft);
+  }
+  .stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .stat-value { font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; margin-top: 4px; }
+
+  .breakdown {
+    text-align: left; margin-top: 24px;
+  }
+  .breakdown h3 {
+    font-family: 'Fraunces', serif; font-size: 16px; margin-bottom: 12px;
+    color: var(--gold);
+  }
+  .breakdown-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-pct {
+    font-weight: 800; font-family: 'JetBrains Mono';
+  }
+
+  .log {
+    text-align: left; margin-top: 20px; padding: 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 3px; font-size: 12px; color: var(--muted);
+  }
+  .log div { margin-bottom: 4px; }
+  .log strong { color: var(--accent); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 600px) {
+    .question-card { padding: 20px; }
+    .q-text { font-size: 16px; }
+    .option { font-size: 13px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="eyebrow">Universidad del Salvador · Ing. Abel Maciel</div>
+    <h1>Quiz Final <em>Teleinformática</em></h1>
+    <p class="subtitle">100 preguntas · 5 informes · puntaje en vivo · cronómetro</p>
+  </header>
+
+  <!-- START -->
+  <section id="start" class="start-panel">
+    <h2>¿Listo, Jor?</h2>
+    <p style="color: var(--muted); font-size: 14px; max-width: 520px; margin: 0 auto 6px;">
+      100 preguntas multiple choice distribuidas entre los 5 informes. Cada respuesta correcta suma <strong style="color: var(--accent);">1 punto</strong>.
+      No penaliza error. Al finalizar vas a ver el resumen completo con hora de inicio, fin y duración.
+    </p>
+    <div class="info-grid">
+      <div class="info-box"><div class="info-box-num">100</div><div class="info-box-label">Preguntas</div></div>
+      <div class="info-box"><div class="info-box-num">5</div><div class="info-box-label">Informes</div></div>
+      <div class="info-box"><div class="info-box-num">∞</div><div class="info-box-label">Tiempo</div></div>
+      <div class="info-box"><div class="info-box-num">70</div><div class="info-box-label">Para aprobar</div></div>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Comenzar quiz →</button>
+  </section>
+
+  <!-- HUD -->
+  <div id="hud" class="hud hidden">
+    <div class="hud-item">
+      <div class="hud-label">Pregunta</div>
+      <div class="hud-value blue"><span id="qCurrent">1</span>/100</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Puntaje</div>
+      <div class="hud-value green" id="scoreDisplay">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Errores</div>
+      <div class="hud-value red" id="wrongDisplay">0</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-label">Tiempo</div>
+      <div class="hud-value gold" id="timerDisplay">00:00</div>
+    </div>
+  </div>
+
+  <div id="progressShell" class="progress-shell hidden">
+    <div id="progressFill" class="progress-fill"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden"></section>
+
+  <!-- END -->
+  <section id="end" class="final-panel hidden"></section>
+
+</div>
+
+<script>
+// ============ BANCO DE 100 PREGUNTAS ============
+const QUESTIONS = [
+  // ====== INFORME 1 — Teoría de la Información (1-20) ======
+  {topic:"Informe 1", q:"¿Quiénes son considerados los padres de la Teoría de la Información?", opts:["Tanenbaum y Stallings","Claude Shannon y Warren Weaver","Markov y Nyquist","Turing y Von Neumann"], a:1, exp:"La Teoría de la Información fue desarrollada por Claude E. Shannon y Warren Weaver a fines de la década del 40."},
+  {topic:"Informe 1", q:"La Teoría de la Información forma parte de un área matemática más amplia. ¿Cuál?", opts:["Teoría de grafos","Teoría de la Probabilidad","Álgebra lineal","Topología"], a:1, exp:"En su propósito de indagación y cálculo, la Teoría de la Información es un espacio dentro de la Teoría de la Probabilidad."},
+  {topic:"Informe 1", q:"Según Shannon, ¿cuál es el esquema correcto de un sistema de comunicación?", opts:["Fuente → Canal → Destino","Fuente → Codificador → Mensaje → Canal (ruido) → Decodificador → Destino","Emisor → Receptor → Feedback","Origen → Modem → Red"], a:1, exp:"El modelo clásico incluye: Fuente, Codificador, Mensaje, Canal (afectado por ruido), Decodificador y Destino."},
+  {topic:"Informe 1", q:"Si un mensaje tiene probabilidad 1 de ocurrencia, ¿cuál es su Cantidad de Información (C.I.)?", opts:["Máxima","Igual a 1","Nula (0)","Depende del canal"], a:2, exp:"Si se sabe con certeza que un mensaje será recibido, su C.I. = 0. La C.I. es mayor cuanto menor es la probabilidad."},
+  {topic:"Informe 1", q:"¿Qué es la redundancia en Teoría de la Información?", opts:["Pérdida de información en el canal","Repetición innecesaria de información ya procesada","Compresión del mensaje","Ruido del canal"], a:1, exp:"La redundancia es la repetición innecesaria de información. Ocupa lugar en el paquete que podría aprovecharse para otra cosa."},
+  {topic:"Informe 1", q:"¿Qué tipo de fuentes NO permiten compresión según el criterio de Markov?", opts:["Deterministas","Estocásticas","Aleatorias","Estructuradas"], a:2, exp:"Las fuentes aleatorias no cumplen la ley de Markov, por lo tanto no permiten la compresión de la banda base."},
+  {topic:"Informe 1", q:"La Ley de Markov establece que para comprimir una cadena de bits...", opts:["Debe estar ordenada de menor a mayor","Cualquier secuencia debe ser representativa de toda la cadena","Debe repetirse al menos 3 veces","El primer bit debe ser 1"], a:1, exp:"Según Markov, para comprimir, cualquier secuencia de la cadena debe ser representativa de toda la cadena completa."},
+  {topic:"Informe 1", q:"¿Cuál es la fórmula de la entropía original de la fuente?", opts:["H = Σ (Pi × Li)","H = Pi / Li","H = log2(Pi)","H = Σ Li - Pi"], a:0, exp:"La entropía original (con redundancia) se calcula como H = Σ (Pi × Li), donde Pi es la probabilidad y Li la longitud de cada mensaje."},
+  {topic:"Informe 1", q:"¿Cuál es la fórmula de la entropía mínima luego de compresión?", opts:["Hmin = Σ (Pi + Li)","Hmin = Σ (−Pi × log2 Pi)","Hmin = Pi × log10 Pi","Hmin = Li / Pi"], a:1, exp:"La entropía mínima es Hmin = Σ (−Pi × log2 Pi). Shannon demostró matemáticamente este valor como el mínimo alcanzable."},
+  {topic:"Informe 1", q:"¿Cuál es la longitud mínima con la que se puede codificar un mensaje?", opts:["Li min = Pi × 2","Li min = −log2 Pi","Li min = 1 / Pi","Li min = log10 Pi"], a:1, exp:"La longitud mínima teórica es Li min = −log2 Pi. Cuanto más probable el mensaje, menor Li necesaria."},
+  {topic:"Informe 1", q:"En la calculadora común, ¿cómo se calcula log2(x)?", opts:["log(x) × 2","log(x) / log(2)","log(x) − log(2)","2 × ln(x)"], a:1, exp:"La conversión entre bases de logaritmo: log2(x) = log(x) / log(2)."},
+  {topic:"Informe 1", q:"¿Qué enuncia el Teorema de Muestreo de Shannon?", opts:["Toda señal puede comprimirse al 50%","La frecuencia de muestreo debe ser mayor al doble del ancho de banda","El ruido se elimina con repetidoras","Los paquetes deben ir numerados"], a:1, exp:"Una señal periódica limitada en banda puede reconstruirse exactamente si la frecuencia de muestreo supera el doble de su ancho de banda."},
+  {topic:"Informe 1", q:"Para la voz humana (AB = 3,4 KHz), ¿cuántas muestras/seg se necesitan según Shannon?", opts:["3.400","6.800","1.700","34.000"], a:1, exp:"Como la muestra debe ser > 2 × AB → 2 × 3.400 Hz = 6.800 muestras/seg."},
+  {topic:"Informe 1", q:"La compresión de datos opera principalmente en...", opts:["El Hard del receptor","El Soft del emisor, a la salida de la fuente","El medio de transmisión","El decodificador"], a:1, exp:"La compresión se ejecuta en el Soft del emisor, a la salida de la fuente, antes de pasar al canal."},
+  {topic:"Informe 1", q:"¿Cuál de estos NO es un método básico de compresión?", opts:["Disminución del ancho de bit","Eliminación de redundancias","Compresión tipo Markov","Amplificación de señal"], a:3, exp:"Los métodos de compresión son: reducir ancho de bit, eliminar redundancias y aplicar compresión tipo Markov. Amplificar señal no es compresión."},
+  {topic:"Informe 1", q:"Para mensajes con L1=16 bits, P1=0,3 ; L2=24, P2=0,2 ; L3=8, P3=0,6. ¿Cuánto vale H original?", opts:["10,2","14,4","48","20"], a:1, exp:"H = (0,3×16)+(0,2×24)+(0,6×8) = 4,8+4,8+4,8 = 14,4"},
+  {topic:"Informe 1", q:"En la codificación, se asignan bits a los mensajes de esta forma:", opts:["Más bits a los más probables","Menos bits a los más probables, más bits a los menos probables","Misma cantidad a todos","Más bits siempre al primero"], a:1, exp:"Por eficiencia, se asignan pocos bits a los mensajes frecuentes y más bits a los raros. Es la base de la compresión."},
+  {topic:"Informe 1", q:"Una fuente cuyos mensajes obedecen a un patrón común se llama:", opts:["Aleatoria","Caótica","Determinista","Amorfa"], a:2, exp:"Las fuentes deterministas generan mensajes con un patrón común y por eso permiten la compresión."},
+  {topic:"Informe 1", q:"¿Qué pasa con la ENTROPÍA luego de comprimir un espectro?", opts:["Aumenta","Disminuye","Se mantiene igual","Desaparece"], a:1, exp:"Al comprimir, eliminamos redundancia y la entropía del espectro baja al valor mínimo Hmin."},
+  {topic:"Informe 1", q:"¿Qué es el 'código' en técnicas digitales?", opts:["Un lenguaje de programación","La secuencia de 0 y 1 representativa de la información según un protocolo","El mensaje original","El canal de comunicación"], a:1, exp:"El código se genera usando el sistema binario: un conjunto de 1 y 0 que representa la información procesada."},
+
+  // ====== INFORME 2 — Señales Eléctricas (21-40) ======
+  {topic:"Informe 2", q:"¿Qué hace la codificación primaria?", opts:["Convierte binario a texto","Transforma el mensaje en señal eléctrica","Comprime la información","Cifra el mensaje"], a:1, exp:"La codificación primaria transforma el mensaje original en una variación de corriente o tensión en el tiempo."},
+  {topic:"Informe 2", q:"¿Qué dispositivos realizan la codificación primaria?", opts:["Microprocesadores","Transductores","Routers","Moduladores"], a:1, exp:"Los Transductores (micrófonos, cámaras, lectores magnéticos) realizan la codificación primaria."},
+  {topic:"Informe 2", q:"¿Qué realiza la codificación secundaria?", opts:["Vuelve analógica la señal","Le asigna un código del sistema binario","Aumenta la amplitud","La transmite al canal"], a:1, exp:"La codificación secundaria asigna a la señal eléctrica un código binario (tren de 0 y 1)."},
+  {topic:"Informe 2", q:"¿Quién realiza la codificación secundaria?", opts:["Transductores","Microprocesadores electrónicos en la etapa final de la Fuente","El modem","El receptor"], a:1, exp:"La realizan circuitos digitales (microprocesadores) en la etapa final de la Fuente."},
+  {topic:"Informe 2", q:"¿Qué es la 'Banda Base'?", opts:["Un tipo de antena","La señal a la salida de la Fuente con ambas codificaciones","El canal físico","Un tipo de modulador"], a:1, exp:"Banda Base es la señal que se desea transmitir, representando la salida de la Fuente con codificación primaria y secundaria."},
+  {topic:"Informe 2", q:"¿Qué es la 'longitud de palabra' en una señal digital?", opts:["Su duración en segundos","El número de bits que contiene","Su amplitud","Su frecuencia"], a:1, exp:"La longitud de palabra es el número de bits que posee una palabra binaria, independiente del mensaje."},
+  {topic:"Informe 2", q:"La palabra binaria '10011011100' tiene una longitud de:", opts:["10 bits","11 bits","12 bits","8 bits"], a:1, exp:"Contando dígito por dígito: 1-0-0-1-1-0-1-1-1-0-0 = 11 bits."},
+  {topic:"Informe 2", q:"¿Qué genera un 'paquete' multiplexado?", opts:["La compresión de un solo mensaje","La unión en el tiempo de varias Bandas Base para Tx simultáneas","El cifrado de un mensaje","Una señal aperiódica"], a:1, exp:"Los paquetes se arman en los circuitos Multiplexores, aprovechando ventanas de tiempo libres al comprimir BBs."},
+  {topic:"Informe 2", q:"Las señales que se repiten en el tiempo y sirven para Tx información se llaman:", opts:["Aperiódicas","Aleatorias","Periódicas","Compuestas"], a:2, exp:"Las señales periódicas se repiten en el tiempo y son las utilizadas como Banda Base. Las aperiódicas son arbitrarias y no sirven para Tx información."},
+  {topic:"Informe 2", q:"¿Cuántos estados de tensión admiten las señales digitales?", opts:["Infinitos","Cuatro","Dos","Diez"], a:2, exp:"Las señales digitales solo admiten 2 estados de tensión (binario). Las analógicas admiten infinitos estados (Reales)."},
+  {topic:"Informe 2", q:"¿En qué unidad se mide la Frecuencia?", opts:["Volts","Hertz (Hz) = ciclos/seg","Segundos","dB"], a:1, exp:"La frecuencia se mide en Hertz: 1 Hz = 1 ciclo por segundo."},
+  {topic:"Informe 2", q:"¿A cuántos Hz equivale 1 GHz?", opts:["10⁶ Hz","10⁹ Hz","10¹² Hz","10³ Hz"], a:1, exp:"1 GHz = 1.000.000.000 Hz = 10⁹ Hz."},
+  {topic:"Informe 2", q:"¿Cuál es la relación entre velocidad de señal (vs) y ancho de bit (A)?", opts:["vs = A × 2","vs = A²","vs = 1/A","vs = A/1000"], a:2, exp:"vs y A son inversas: vs = 1/A. A menor ancho de bit, mayor velocidad."},
+  {topic:"Informe 2", q:"¿Cuánto vale la velocidad de una señal con A = 8 useg?", opts:["8 Kbps","80 Kbps","125 Kbps","1.000 Kbps"], a:2, exp:"vs = 1/(8×10⁻⁶) = 125.000 bps = 125 Kbps."},
+  {topic:"Informe 2", q:"¿A cuántos bits equivale 1 Byte?", opts:["2","4","8","16"], a:2, exp:"1 Byte = 8 bits. Es la unidad básica de agrupación."},
+  {topic:"Informe 2", q:"¿Qué relación hay entre bps y Baudio (Bd)?", opts:["1 Bd = 8 bps","1 Bd = 1 bps","1 Bd = 1 KB","1 Bd = 1 Hz"], a:1, exp:"La equivalencia es directa: 1 bps = 1 Bd en modo de transmisión."},
+  {topic:"Informe 2", q:"Al convertir 2,8 Kbps a Mbps obtenemos:", opts:["0,0028 Mbps","28 Mbps","2.800 Mbps","2,8 Mbps"], a:0, exp:"2,8 Kbps = 2,8/1000 Mbps = 0,0028 Mbps."},
+  {topic:"Informe 2", q:"¿Qué pasa si el A.B. del circuito es MENOR al A.B. de la señal?", opts:["Se amplifica la señal","Habrá recortes del espectro (pérdida de información)","Se comprime automáticamente","No afecta"], a:1, exp:"Si el circuito tiene menor AB, no puede procesar todo el espectro → recortes, pérdida de información y Tx deficiente."},
+  {topic:"Informe 2", q:"En una señal analógica, el Ancho de Banda indica:", opts:["La cantidad de bits por segundo","El intervalo de frecuencia donde se concentra la energía","La amplitud máxima","La cantidad de canales"], a:1, exp:"En analógicas, AB es el intervalo de frecuencia donde se concentra la mayor energía de la señal."},
+  {topic:"Informe 2", q:"¿Qué indica la 'altura de bit' (Hb)?", opts:["La duración temporal del bit","El valor de tensión del dígito 1","La velocidad","El ancho de banda"], a:1, exp:"La altura de bit es el valor de tensión correspondiente al 1 lógico. Se usa para verificar sensibilidad de procesadores."},
+
+  // ====== INFORME 3 — Modulación (41-60) ======
+  {topic:"Informe 3", q:"¿Qué es la modulación?", opts:["Cifrar el mensaje","Inscribir la información de una señal sobre otra para transportarla","Amplificar una señal","Comprimir bits"], a:1, exp:"Modular es inscribir la info de una señal inteligente (BB) sobre otra (Portadora) para transportarla a distancia."},
+  {topic:"Informe 3", q:"En la analogía de 'la carta', ¿qué representa la Portadora?", opts:["El contenido del mensaje","El sobre que contiene y transporta la carta","El cartero","El destinatario"], a:1, exp:"La Banda Base es la carta (mensaje) y la Portadora es el sobre que la contiene y transporta."},
+  {topic:"Informe 3", q:"¿En qué rango de frecuencia entra la Banda Base al circuito modulador?", opts:["KHz (baja)","MHz (media)","GHz (alta)","THz"], a:0, exp:"La BB ingresa con frecuencia baja (KHz). La Portadora ingresa con frecuencia muy elevada (MHz o GHz) para propagarse mejor."},
+  {topic:"Informe 3", q:"¿Qué equipo realiza la modulación/demodulación en el ETD?", opts:["Router","Modem","Switch","Transductor"], a:1, exp:"El MODEM (MODulador + DEModulador) realiza el proceso a doble vía en los Terminales."},
+  {topic:"Informe 3", q:"Si el medio es inalámbrico, la portadora debe ser obligatoriamente:", opts:["Digital","Binaria","Analógica","Comprimida"], a:2, exp:"En medios inalámbricos (radioenlaces) la portadora debe ser analógica. En medios físicos puede ser digital."},
+  {topic:"Informe 3", q:"¿Qué significa A.M. en modulación analógica?", opts:["Amplitud Media","Modulación en Amplitud","Análisis Modulado","Audio Modulado"], a:1, exp:"A.M. es Modulación en Amplitud: se varía la amplitud de la portadora con la señal de BB."},
+  {topic:"Informe 3", q:"¿Qué parámetro modifica F.M.?", opts:["Amplitud","Frecuencia","Fase","Fuente"], a:1, exp:"F.M. (Modulación en Frecuencia) modifica la frecuencia de la portadora."},
+  {topic:"Informe 3", q:"¿Qué parámetro modifica P.M.?", opts:["Amplitud","Fase (ángulo del vector)","Potencia","Posición"], a:1, exp:"P.M. (Modulación de Fase) modifica el ángulo del vector que representa a la portadora."},
+  {topic:"Informe 3", q:"En técnicas digitales, el equivalente a A.M. es:", opts:["A.S.K.","F.S.K.","P.S.K.","P.P.M."], a:0, exp:"A.S.K. = Amplitude Shift Keying, modulación digital por amplitud."},
+  {topic:"Informe 3", q:"¿Qué significa F.S.K.?", opts:["Free Signal Key","Frequency Shift Keying (modulación por frecuencia)","Fast Switching Key","Frame Sync Key"], a:1, exp:"F.S.K. es la modulación digital donde se modifica la frecuencia de la portadora."},
+  {topic:"Informe 3", q:"P.S.K. modifica:", opts:["La posición del bit","La amplitud","La fase (ángulo) de la portadora","La longitud"], a:2, exp:"P.S.K. = Phase Shift Keying. Modifica el ángulo/fase del vector portador."},
+  {topic:"Informe 3", q:"¿Qué modifica P.A.M.?", opts:["La amplitud del bit","El ancho del bit","La posición del bit","La fase del bit"], a:0, exp:"P.A.M. (Pulse Amplitude Modulation) modifica la amplitud del pulso/bit."},
+  {topic:"Informe 3", q:"¿Qué modifica P.W.M.?", opts:["La amplitud","El ancho del bit","La posición","La polaridad"], a:1, exp:"P.W.M. (Pulse Width Modulation) modifica el ancho/duración del pulso."},
+  {topic:"Informe 3", q:"¿Qué modifica P.P.M.?", opts:["La amplitud","El ancho","La posición del bit","La fase"], a:2, exp:"P.P.M. (Pulse Position Modulation) modifica la posición temporal del pulso."},
+  {topic:"Informe 3", q:"¿Cuál demostró MAYOR protección contra ruido y mejor rendimiento en paquetes multiplexados?", opts:["P.A.M.","P.W.M.","P.P.M.","A.S.K."], a:2, exp:"P.P.M. ha demostrado históricamente mejor protección contra ruido y mejor rendimiento en paquetes multiplexados."},
+  {topic:"Informe 3", q:"¿Cómo se calcula el Índice de Modulación (I.M.)?", opts:["(porción modulada × total) / 100","(porción modulada / parámetro total) × 100%","total / porción","portadora − BB"], a:1, exp:"I.M. = (porción modulada / parámetro total) × 100%. Se expresa en porcentaje."},
+  {topic:"Informe 3", q:"Si una portadora analógica tiene amplitud 3,5 mV y se moduló 0,2 mV, ¿cuánto vale I.M.?", opts:["1,75%","5,71%","17,5%","57,1%"], a:1, exp:"I.M. = (0,2/3,5) × 100% = 5,71%."},
+  {topic:"Informe 3", q:"¿Qué ocurre cuando aumenta el I.M.?", opts:["Baja la eficiencia y sube el ruido","Mejora la eficiencia pero aumenta la interferencia","Se reducen los costos","No hay efectos"], a:1, exp:"A mayor I.M. → mejor eficiencia, PERO mayor interferencia sobre otras señales. Es un factor crítico y regulado."},
+  {topic:"Informe 3", q:"Si un ETD excede el I.M. permitido por el organismo de control:", opts:["Se le envía advertencia","Se clausura el Terminal","Se reduce la velocidad","Se paga una multa mensual"], a:1, exp:"Si se excede el I.M. asignado, se clausura el Terminal por riesgo de interferencia en la red."},
+  {topic:"Informe 3", q:"¿Cuál es la relación entre I.M. y Ancho de Banda?", opts:["Inversa","Directa: si sube IM, sube AB","No hay relación","Logarítmica"], a:1, exp:"Es una relación directa: si la modulación es alta, también crece el AB, provocando interferencias."},
+
+  // ====== INFORME 4 — Filtros, Interfaces, Modem (61-80) ======
+  {topic:"Informe 4", q:"¿Qué es un filtro eléctrico?", opts:["Un amplificador de señal","Circuito selectivo con respecto a la frecuencia","Un convertidor A/D","Un codificador"], a:1, exp:"Un filtro es un circuito cuya respuesta cambia según la frecuencia de la señal de entrada."},
+  {topic:"Informe 4", q:"En un filtro pasivo, las bobinas:", opts:["Dejan pasar altas, bloquean bajas","Dejan pasar bajas, bloquean altas","Bloquean todo","Amplifican la señal"], a:1, exp:"Las bobinas dejan pasar frecuencias bajas y bloquean las altas."},
+  {topic:"Informe 4", q:"Y los capacitores eléctricos:", opts:["Dejan pasar altas, bloquean bajas","Dejan pasar bajas, bloquean altas","Se comportan como bobinas","No reaccionan a la frecuencia"], a:0, exp:"Los capacitores hacen lo contrario: dejan pasar frecuencias altas y bloquean las bajas."},
+  {topic:"Informe 4", q:"¿Qué filtros son más modernos y usan circuitos integrados?", opts:["Pasivos","Activos","Pasa-banda","Elimina-banda"], a:1, exp:"Los filtros activos son de tecnología moderna (chips), pequeños y veloces, pero limitados en corriente."},
+  {topic:"Informe 4", q:"¿Cuál es una limitación importante de los filtros activos?", opts:["Son muy grandes","Soportan poca corriente, se queman fácilmente","Son lentos","Son caros"], a:1, exp:"Los filtros activos tienen muy buena selectividad pero soportan poca corriente: se queman fácilmente."},
+  {topic:"Informe 4", q:"Un filtro pasa-banda:", opts:["Bloquea todas las frecuencias","Deja pasar frecuencias centrales, bloquea bajas y altas","Deja pasar solo bajas","Actúa como trampa"], a:1, exp:"El pasa-banda permite el paso de frecuencias centrales, eliminando bajas y altas. Muy usado para seleccionar canales multiplexados."},
+  {topic:"Informe 4", q:"¿Cuál es conocido como 'trampa de frecuencia'?", opts:["Pasa-altos","Pasa-bajos","Elimina-banda","Pasa-banda"], a:2, exp:"El elimina-banda bloquea UNA sola banda específica (la que interfiere) y deja pasar el resto."},
+  {topic:"Informe 4", q:"¿Qué representa la 'discriminación' de un filtro?", opts:["Su tamaño","Su capacidad de rechazar la Banda Prohibida (en %)","Su costo","Su ancho de banda"], a:1, exp:"La discriminación indica en % cuánto rechaza el filtro la banda que debe bloquear. A mayor %, mejor calidad."},
+  {topic:"Informe 4", q:"En una frecuencia de corte, la respuesta del filtro cae a:", opts:["100%","70% (en banda prohibida queda al 30%)","50%","0%"], a:1, exp:"En fci y fcs, la caída de respuesta es del 70%. En la banda prohibida responde solo al 30% de su capacidad."},
+  {topic:"Informe 4", q:"¿Cómo se calcula la frecuencia central (f0)?", opts:["(fci + fcs)/2","fci × fcs","fcs − fci","fci²"], a:0, exp:"La frecuencia central o de resonancia es el promedio: f0 = (fci + fcs)/2."},
+  {topic:"Informe 4", q:"Si fci = 45 KHz y fcs = 80 KHz, ¿cuánto vale f0?", opts:["35 KHz","62,5 KHz","125 KHz","40 KHz"], a:1, exp:"f0 = (45+80)/2 = 125/2 = 62,5 KHz."},
+  {topic:"Informe 4", q:"¿Cómo se calcula el Ancho de Banda del filtro?", opts:["fcs − fci","(fcs + fci)/2","fcs × fci","fci − fcs"], a:0, exp:"AB del filtro = fcs − fci (la diferencia entre las dos frecuencias de corte)."},
+  {topic:"Informe 4", q:"¿Qué dos tareas principales realiza una Interface?", opts:["Cifrar y comprimir","Adaptar velocidades y adaptar niveles de tensión","Modular y demodular","Amplificar y filtrar"], a:1, exp:"La Interface (1) adapta velocidades (ancho de bit) y (2) adapta niveles de tensión e impedancia entre equipos."},
+  {topic:"Informe 4", q:"¿Qué son los C.V. (Circuitos Virtuales)?", opts:["Cables virtuales","Bucles de comunicación interconectados por Soft","Antenas virtuales","Memorias RAM"], a:1, exp:"Los C.V. son rutas de comunicación seleccionadas por protocolos de Soft, que se usan para encaminar paquetes."},
+  {topic:"Informe 4", q:"¿Cómo se llaman los Circuitos Virtuales eventuales que se arman y liberan?", opts:["P.V.C. (Permanentes)","C.V.C. (Conmutados)","V.P.N.","L.A.N."], a:1, exp:"Los C.V.C. (Circuitos Virtuales Conmutados) son eventuales: se arman para una Tx y se liberan."},
+  {topic:"Informe 4", q:"¿Para qué sirven los P.V.C. (Circuitos Virtuales Permanentes)?", opts:["Comunicaciones cortas","Comunicaciones largas (ej. bancarios, industriales)","Solo Wi-Fi","Email"], a:1, exp:"Los P.V.C. tienen larga duración y se usan para programas extensos como bancarios o industriales."},
+  {topic:"Informe 4", q:"¿Qué organismo recomienda la Interface X.25?", opts:["IEEE","ITU-T","ISO","FCC"], a:1, exp:"X.25 es recomendación de la ITU-T (Comité de Estandarización en Telecomunicaciones)."},
+  {topic:"Informe 4", q:"¿En qué capas del OSI opera principalmente X.25?", opts:["Presentación y Aplicación","Física y Red","Sesión y Transporte","Solo Física"], a:1, exp:"X.25 opera en las capas Física y de Red del modelo OSI."},
+  {topic:"Informe 4", q:"¿Qué interconecta principalmente Frame Relay (F.R.)?", opts:["Redes telefónicas y WiFi","Redes LAN con redes WAN","Modem con antenas","Routers con switches"], a:1, exp:"F.R. adapta e interconecta redes LAN con redes WAN, ampliando geográficamente la comunicación."},
+  {topic:"Informe 4", q:"¿En qué rango de Ancho de Banda opera F.R. en redes WAN?", opts:["1 a 10 Kbps","56 Kbps a 1,544 Mbps","1 a 10 Gbps","10 Mbps fijo"], a:1, exp:"F.R. actúa con AB en WAN entre 56 Kbps y 1.544 Mbps (1,544 Mbps)."},
+
+  // ====== INFORME 4 (continuación) + 5 (81-100) ======
+  {topic:"Informe 4", q:"¿Qué significa A.T.M.?", opts:["Automated Teller Machine","Asynchronous Transfer Mode (Modo de Transmisión Asincrónico)","Active Transport Method","Advanced Traffic Management"], a:1, exp:"A.T.M. = Modo de Transmisión Asincrónico. Escanea el medio buscando circuitos virtuales libres."},
+  {topic:"Informe 4", q:"¿Qué hace A.T.M. para ser más eficiente?", opts:["Usa fibra óptica","Aprovecha los vacíos de las redes sincrónicas transmitiendo en ellos","Comprime más los paquetes","Usa más ancho de banda"], a:1, exp:"Mientras las redes sincrónicas dejan espacios vacíos cuando nadie Tx, ATM los aprovecha. 'Transmite dato cuando puede'."},
+  {topic:"Informe 4", q:"¿Qué función cumple el Modem de Datos?", opts:["Almacena información","Modula y demodula la señal entre BB y red","Filtra frecuencias","Enruta paquetes"], a:1, exp:"El Modem conecta la Banda Base con la red, realizando el proceso a doble vía de Modulación/Demodulación."},
+  {topic:"Informe 4", q:"Los modem internos con bus ISA son considerados:", opts:["La última tecnología","Obsoletos, para bajas velocidades","De alta velocidad","De uso militar"], a:1, exp:"Los buses ISA son obsoletos hoy en día y solo sirven para bajas velocidades."},
+  {topic:"Informe 4", q:"¿Qué puerto usan los Modem externos para conectarse al ordenador?", opts:["USB","Puerto Serie RS-232","HDMI","Ethernet"], a:1, exp:"Los Modem externos usan Puerto Serie tipo RS-232 y tienen fuente propia conectada a la red eléctrica."},
+  {topic:"Informe 4", q:"Los Modem HSP se caracterizan por:", opts:["Ser los más rápidos","Reemplazar sus circuitos integrados por programas en el ordenador","Ser externos","No requerir PC"], a:1, exp:"Los HSP son internos especiales que sustituyen los CIs propios por programas cargados en el micro del sistema local."},
+  {topic:"Informe 4", q:"Los Modem telefónicos usan qué tipo de onda:", opts:["Cuadrada","Senoidal (con conversor D/A)","Triangular","Pulsos rectangulares"], a:1, exp:"Los Modem telefónicos usan onda senoidal, con conversor digital-analógico para transformar binarios en dos señales senoidales."},
+  {topic:"Informe 5", q:"¿Cuáles son las dos grandes clasificaciones de medios de transmisión?", opts:["Cable y Radio","Guiados y Disipativos (radioenlaces)","Físicos y Lógicos","Locales y Remotos"], a:1, exp:"Los medios se clasifican en Guiados (cables) y Disipativos (radioenlaces)."},
+  {topic:"Informe 5", q:"Los cables telefónicos suelen fabricarse como:", opts:["Cable único de cobre","Cables multipares (varios canales simultáneos)","Fibra plástica","Cables blindados"], a:1, exp:"Los telefónicos son multipares: múltiples canales de comunicación simultáneos en un cable."},
+  {topic:"Informe 5", q:"¿Qué caracteriza a los cables coaxiles?", opts:["Son muy delgados","Tienen malla metálica de protección contra interferencias","Son de fibra óptica","Son inalámbricos"], a:1, exp:"Los coaxiles tienen malla metálica que protege al conductor central de interferencias electromagnéticas."},
+  {topic:"Informe 5", q:"¿Qué medio se usa para interconexión submarina WAN e Internet intercontinental?", opts:["Cable coaxil","Cable telefónico","Fibra óptica","Radioenlace satelital"], a:2, exp:"El tendido submarino entre continentes se realiza con fibra óptica, medio de última tecnología."},
+  {topic:"Informe 5", q:"¿Qué hace el mástil en un radioenlace?", opts:["Transmite señal","Da altura conveniente a la antena","Filtra interferencias","Almacena energía"], a:1, exp:"El mástil es el soporte que da altura a la antena para optimizar la propagación del campo."},
+  {topic:"Informe 5", q:"Una red de radioenlace con bases fijas se llama:", opts:["Estrella","Punto a punto","Anillo","Malla"], a:1, exp:"'Punto a punto' es la configuración con bases fijas. 'En estrella' se usa para terminales móviles (ej. celular)."},
+  {topic:"Informe 5", q:"¿En qué unidad se mide la atenuación de un cable?", opts:["Hz/m","dB por tramo (ej. dB/metro)","Volts/seg","bps"], a:1, exp:"La atenuación (pérdida de señal) se mide en dB por tramos del cable."},
+  {topic:"Informe 5", q:"Un cable Clase C Categoría 3 tiene AB de 20 MHz y alcance sin repetidora de:", opts:["500 m","100 m","700 m","160 m"], a:1, exp:"Clase C Cat 3: AB=20 MHz, alcance=100 m según tabla del fabricante."},
+  {topic:"Informe 5", q:"Regla general: a mayor Ancho de Banda, ¿qué pasa con el alcance?", opts:["Aumenta","Disminuye (necesita más repetidoras o fibra)","Queda igual","Depende de la temperatura"], a:1, exp:"A mayor AB → más paquetes simultáneos pero MENOR alcance. Se necesitan más repetidoras o cambiar a fibra óptica."},
+  {topic:"Informe 5", q:"¿En qué año se comenzó a desarrollar el modelo OSI?", opts:["1965","1977","1989","1995"], a:1, exp:"El modelo OSI se desarrolló a partir de 1977 a través de la U.I.T. (Unión Internacional de Telecomunicaciones)."},
+  {topic:"Informe 5", q:"¿Cuántas capas tiene el modelo OSI?", opts:["4","5","7","10"], a:2, exp:"El modelo OSI plantea una estandarización en 7 niveles o capas."},
+  {topic:"Informe 5", q:"¿Cuál es el orden correcto de las capas OSI del 1 al 7?", opts:["Aplicación, Presentación, Sesión, Transporte, Red, Enlace, Física","Física, Enlace, Red, Transporte, Sesión, Presentación, Aplicación","Enlace, Física, Red, Sesión, Transporte, Aplicación, Presentación","Red, Física, Enlace, Transporte, Aplicación, Sesión, Presentación"], a:1, exp:"El orden de abajo hacia arriba: 1-Física, 2-Enlace, 3-Red, 4-Transporte, 5-Sesión, 6-Presentación, 7-Aplicación."},
+  {topic:"Informe 5", q:"¿Qué capa se encarga de la topología física y los conectores?", opts:["Capa 1 - Física","Capa 2 - Enlace","Capa 3 - Red","Capa 7 - Aplicación"], a:0, exp:"La Capa Física (Nivel 1) diseña la topología, medios físicos, conectores y niveles eléctricos."},
+  {topic:"Informe 5", q:"El SWITCH es dispositivo característico de qué capa OSI?", opts:["Capa 1","Capa 2 (Enlace de Datos)","Capa 3","Capa 4"], a:1, exp:"El Switch es el dispositivo principal de la Capa 2, encargado de distribuir datos del router a los destinatarios locales."},
+];
+
+// ============ STATE ============
+let currentQ = 0;
+let score = 0;
+let wrong = 0;
+let answers = [];
+let startTime = null;
+let endTime = null;
+let timerInterval = null;
+
+// ============ FUNCIONES ============
+function startQuiz() {
+  startTime = new Date();
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('progressShell').classList.remove('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  timerInterval = setInterval(updateTimer, 1000);
+  renderQuestion();
+}
+
+function updateTimer() {
+  const now = new Date();
+  const diff = Math.floor((now - startTime) / 1000);
+  const mins = String(Math.floor(diff / 60)).padStart(2, '0');
+  const secs = String(diff % 60).padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = mins + ':' + secs;
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const quizEl = document.getElementById('quiz');
+  document.getElementById('qCurrent').textContent = currentQ + 1;
+  document.getElementById('progressFill').style.width = ((currentQ) / QUESTIONS.length * 100) + '%';
+
+  const letters = ['A','B','C','D'];
+  let html = `
+    <div class="question-card">
+      <div class="q-meta">
+        <span class="q-tag">${q.topic}</span>
+        <span class="q-number">#${String(currentQ+1).padStart(3,'0')}</span>
+      </div>
+      <p class="q-text">${q.q}</p>
+      <div class="options" id="opts">
+        ${q.opts.map((o, i) => `
+          <button class="option" data-idx="${i}" onclick="selectOption(${i})">
+            <span class="option-letter">${letters[i]}</span>
+            <span>${o}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div id="explanation" class="hidden"></div>
+      <div class="nav" id="nav"></div>
+    </div>
+  `;
+  quizEl.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function selectOption(idx) {
+  const q = QUESTIONS[currentQ];
+  const opts = document.querySelectorAll('.option');
+  opts.forEach((o, i) => {
+    o.disabled = true;
+    if (i === q.a) o.classList.add('correct');
+    if (i === idx && i !== q.a) o.classList.add('wrong');
+  });
+
+  const correct = idx === q.a;
+  if (correct) score++; else wrong++;
+  answers.push({ qIdx: currentQ, picked: idx, correct: correct, topic: q.topic });
+
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('wrongDisplay').textContent = wrong;
+  document.getElementById('progressFill').style.width = ((currentQ + 1) / QUESTIONS.length * 100) + '%';
+
+  const expl = document.getElementById('explanation');
+  expl.className = 'explanation';
+  expl.innerHTML = `<strong>${correct ? '✓ ¡Correcto!' : '✗ Respuesta correcta: ' + ['A','B','C','D'][q.a]}</strong> — ${q.exp}`;
+
+  const nav = document.getElementById('nav');
+  if (currentQ < QUESTIONS.length - 1) {
+    nav.innerHTML = `<div></div><button class="btn-primary" onclick="nextQuestion()">Siguiente →</button>`;
+  } else {
+    nav.innerHTML = `<div></div><button class="btn-primary" onclick="finishQuiz()">Ver resultado final →</button>`;
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+  renderQuestion();
+}
+
+function finishQuiz() {
+  clearInterval(timerInterval);
+  endTime = new Date();
+
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('progressShell').classList.add('hidden');
+
+  const totalSec = Math.floor((endTime - startTime) / 1000);
+  const mins = Math.floor(totalSec / 60);
+  const secs = totalSec % 60;
+  const durationStr = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+
+  const pct = Math.round((score / QUESTIONS.length) * 100);
+  let scoreClass = 'bad', verdict = '', note = '';
+  if (pct >= 85) { scoreClass = 'good'; verdict = 'Excelente, Jor. Tenés la materia.'; note = 'APROBADO con distinción'; }
+  else if (pct >= 70) { scoreClass = 'good'; verdict = 'Muy bien. Aprobás tranquilo.'; note = 'APROBADO'; }
+  else if (pct >= 50) { scoreClass = 'mid'; verdict = 'Justito. Repasá lo que fallaste.'; note = 'AL LÍMITE'; }
+  else { scoreClass = 'bad'; verdict = 'A repasar con tiempo. No te enganches.'; note = 'A REESTUDIAR'; }
+
+  // Breakdown por tema
+  const byTopic = {};
+  answers.forEach(a => {
+    if (!byTopic[a.topic]) byTopic[a.topic] = { ok: 0, total: 0 };
+    byTopic[a.topic].total++;
+    if (a.correct) byTopic[a.topic].ok++;
+  });
+
+  const fmtDate = d => d.toLocaleString('es-AR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+
+  const endEl = document.getElementById('end');
+  endEl.classList.remove('hidden');
+  endEl.innerHTML = `
+    <div class="eyebrow" style="color: var(--gold);">Resultado final · Quiz completo</div>
+    <div class="score-big ${scoreClass}">${score}<span style="font-size:0.5em; color: var(--muted);">/100</span></div>
+    <p class="verdict">${verdict}</p>
+    <div style="background: var(--bg-soft); padding: 10px 20px; border-radius: 3px; display: inline-block; border: 1px solid var(--border); margin-bottom: 18px;">
+      <strong style="color: var(--accent); letter-spacing: 2px;">${note}</strong>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">Correctas</div>
+        <div class="stat-value" style="color: var(--accent);">${score}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Incorrectas</div>
+        <div class="stat-value" style="color: var(--danger);">${wrong}</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">% Acierto</div>
+        <div class="stat-value" style="color: var(--gold);">${pct}%</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Duración</div>
+        <div class="stat-value" style="color: var(--info);">${durationStr}</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <h3>Desglose por informe</h3>
+      ${Object.entries(byTopic).map(([topic, s]) => {
+        const p = Math.round((s.ok / s.total) * 100);
+        const color = p >= 70 ? 'var(--accent)' : (p >= 50 ? 'var(--gold)' : 'var(--danger)');
+        return `
+          <div class="breakdown-row">
+            <span>${topic}</span>
+            <span><span style="color: var(--muted);">${s.ok}/${s.total}</span> · <span class="breakdown-pct" style="color:${color};">${p}%</span></span>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="log">
+      <div><strong>REGISTRO DE SESIÓN</strong></div>
+      <div>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+      <div>Hora de inicio:   ${fmtDate(startTime)}</div>
+      <div>Hora de fin:      ${fmtDate(endTime)}</div>
+      <div>Duración total:   ${mins} min ${secs} seg</div>
+      <div>Preguntas:        ${QUESTIONS.length}</div>
+      <div>Puntaje final:    ${score}/${QUESTIONS.length} (${pct}%)</div>
+      <div>Estado:           ${note}</div>
+    </div>
+
+    <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <button class="btn-primary" onclick="restartQuiz()">Reiniciar quiz</button>
+      <button class="btn-secondary" onclick="window.print()">Imprimir resultado</button>
+    </div>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restartQuiz() {
+  currentQ = 0; score = 0; wrong = 0; answers = [];
+  startTime = null; endTime = null;
+  document.getElementById('scoreDisplay').textContent = '0';
+  document.getElementById('wrongDisplay').textContent = '0';
+  document.getElementById('timerDisplay').textContent = '00:00';
+  document.getElementById('end').classList.add('hidden');
+  document.getElementById('start').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
